@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <title>ch10-02</title>
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="thumbnailviewer.css" type="text/css">
+    <script src="thumbnailviewer.js" type="text/javascript">
+
+/***********************************************
+* Image Thumbnail Viewer Script- © Dynamic Drive (www.dynamicdrive.com)
+* This notice must stay intact for legal use.
+* Visit http://www.dynamicdrive.com/ for full source code
+***********************************************/
+
+</script> </head>
+  <body>
+    <div class="os1">10.2 滚动区域和工具箱</div>
+    <br>
+    本节介绍两种控件容器 Scroll Area、Tool Box，可以对窗口里面的控件视图扩展，容纳原本放不下的很多控件。Scroll Area
+    滚动区域，就是指该容器具有水平和垂直的滚动条，当容器内控件尺寸超出容器矩形区域时，将显示滚动条，通过拖动滚动条切换显示内部控件的位置。<br>
+    Tool Box 工具箱是支持多个页面集合到一起，每次显示一个页面，点击页面标题可以切换各个页面。<br>
+    <br>
+    <div class="os2">10.2.1 Scroll Area 滚动区域</div>
+    <br>
+    滚动区域的类是 QScrollArea，该类可以设置唯一的子控件，通过滚动条切换内部尺寸较大的控件视口（viewport）。
+    在不涉及滚动式，视口与控件矩形一样大。当子控件实际尺寸超过视口时，如下图所示：<br>
+    <center> <img src="images/ch10/ch10-02-01.png" alt="viewport"></center>
+    黄色矩形是真实的子控件区域，比如一张很大的图片，而我们的 QScrollArea 矩形可能只有蓝色矩形那么大的尺寸，这时候 QScrollArea
+    就会显示水平和垂直的滚动条，滚动条往下移动时，对应的视口矩形就向下滑动，切换显示子控件的区域。视口就是一个可以实际看见的小窗口，通过不断地滑动，来轮流显示控件的
+    各个区域。<br>
+    QScrollArea 设置唯一子控件的函数为：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;setWidget(QWidget * widget)</div>
+    设置子控件之后，还可以设置子控件的对齐显示方式：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;setAlignment(Qt::Alignment)</div>
+    这个对齐是子控件尺寸小于视口尺寸时才能看到效果，就是视口很大，有空余地方，决定小尺寸的子控件摆在哪个位置合适。对齐方式分为水平和垂直：<br>
+    <br>
+    <table class="tabel">
+      <tbody>
+        <tr class="d1">
+          <td style="width: 180px;" align="center">常量</td>
+          <td style="width: 120px;" align="center">数值</td>
+          <td align="center"><b> 描述</b></td>
+        </tr>
+        <tr>
+          <td>Qt::AlignLeft</td>
+          <td>&nbsp;0x0001</td>
+          <td> 水平左对齐。</td>
+        </tr>
+        <tr class="d1">
+          <td style="height: 16px;">Qt::AlignRight</td>
+          <td>&nbsp;0x0002</td>
+          <td> 水平右对齐。</td>
+        </tr>
+        <tr>
+          <td style="height: 16px;">Qt::AlignHCenter</td>
+          <td>&nbsp;0x0004</td>
+          <td> 水平居中。</td>
+        </tr>
+        <tr class="d1">
+          <td>Qt::AlignTop</td>
+          <td>&nbsp;0x0020</td>
+          <td> 垂直顶部对齐。</td>
+        </tr>
+        <tr>
+          <td>Qt::AlignBottom</td>
+          <td>&nbsp;0x0040</td>
+          <td style="height: 16px;"> 垂直底部对齐。</td>
+        </tr>
+        <tr class="d1">
+          <td>Qt::AlignVCenter</td>
+          <td style="height: 16px;">&nbsp;0x0080</td>
+          <td> 垂直居中。</td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    水平和垂直的对齐方式可以用二进制或 | 同时设置，比如水平居中和垂直居中：&nbsp; <br>
+    Qt::AlignHCenter | Qt::AlignVCenter<br>
+    一般显示图片的应用程序通常图片水平和垂直都居中。<br>
+    QScrollArea 还可以设置 widgetResizable 属性：<br>
+    <div class="code">bool&nbsp;&nbsp; &nbsp;widgetResizable() const<br>
+      void&nbsp;&nbsp;&nbsp; setWidgetResizable(bool resizable)</div>
+    widgetResizable 属性默认是 false，代表 QScrollArea 尊重子控件原本的尺寸设置，程序员可以通过函数
+    widget()-&gt;resize() 调整子控件的尺寸， QScrollArea 自动根据调整后的子控件调整自己的滚动条显示。<br>
+    如果 widgetResizable 属性设置为 true，那么 QScrollArea
+    则可以自己做主调整子控件大小，尽量调整子控件尺寸，以避免使用到滚动条，从而有更多视口区域显示内部子控件。滚动条的绘制会占用一定的视口区
+    域，widgetResizable 为 true 时， QScrollArea 会尽量调整子控件尺寸避免绘制滚动条。<br>
+    <br>
+    QScrollArea 通常有两种用途，一种是显示很大的图片，比如：<br>
+    <div class="code">QLabel *imageLabel = new QLabel;<br>
+      QImage image("happyguy.png");<br>
+      imageLabel-&gt;setPixmap(QPixmap::fromImage(image));<br>
+      <br>
+      scrollArea = new QScrollArea;<br>
+      scrollArea-&gt;setBackgroundRole(QPalette::Dark);<br>
+      scrollArea-&gt;setWidget(imageLabel);</div>
+    如果图片太大，就用滚动条显示图片各个区域。<br>
+    第二种是显示很大的子控件容器，比如：<br>
+    <div class="code">&nbsp;&nbsp;&nbsp; //控件容器<br>
+      &nbsp;&nbsp;&nbsp; QWidget *widContainer = new QWidget();<br>
+      &nbsp;&nbsp;&nbsp; //垂直布局器<br>
+      &nbsp;&nbsp;&nbsp; QVBoxLayout *layout = new QVBoxLayout();<br>
+      <br>
+      &nbsp;&nbsp;&nbsp; QLabel *curLabel;<br>
+      &nbsp;&nbsp;&nbsp; //一百个文本标签举例<br>
+      &nbsp;&nbsp;&nbsp; for(int i=0; i&lt;100; i++)<br>
+      &nbsp;&nbsp;&nbsp; {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; QString strTemp = tr("Label
+      %1").arg( i );<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; curLabel = new QLabel( strTemp
+      );<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; layout-&gt;addWidget( curLabel
+      );<br>
+      &nbsp;&nbsp;&nbsp; }<br>
+      &nbsp;&nbsp;&nbsp; //容器布局<br>
+      &nbsp;&nbsp;&nbsp; widContainer-&gt;setLayout( layout );<br>
+      &nbsp;&nbsp;&nbsp; //将容器设置为滚动区域唯一子控件<br>
+      &nbsp;&nbsp;&nbsp; ui-&gt;scrollArea-&gt;setWidget( widContainer );</div>
+    我们将这 100 个标签控件放进布局器，然后布局器设置给容器对象，容器对象再设置给滚动区域，我们就通过滚动区域轮流显示100个标签控件。<br>
+    针对两种场景，QScrollArea 可以通过两个函数来移动视口位置：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;ensureVisible(int x, int y, int
+      xmargin = 50, int ymargin = 50)</div>
+    子控件的左上角为 x=0，顶部 y=0，ensureVisible() 默认显示 (x,y) 点位置及包含该点的50*50矩形区域。<br>
+    改变 x 和 y 数值，视口就会移动到能够显示该坐标点的位置。<br>
+    第二个函数是移动视口，确保某个子孙控件显示出来：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;ensureWidgetVisible(QWidget *
+      childWidget, int xmargin = 50, int ymargin = 50)</div>
+    QScrollArea 总是显示直接子控件的，上面函数通常是显示孙子级或更低级别的重孙、玄孙等内部控件。<br>
+    <br>
+    滚动条默认的显示策略是有必要时才显示，即子控件真实尺寸大于视口尺寸时才显示，这个策略可以设置：<br>
+    <div class="code">Qt::ScrollBarPolicy&nbsp;&nbsp;
+      &nbsp;horizontalScrollBarPolicy()
+      const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //获取水平滚动条的显示策略<br>
+      void&nbsp;&nbsp;&nbsp;
+      setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy)&nbsp;&nbsp;&nbsp;&nbsp;
+      //设置水平滚动条的显示策略<br>
+      Qt::ScrollBarPolicy&nbsp;&nbsp;&nbsp; verticalScrollBarPolicy()
+      const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      //获取垂直滚动条的显示策略<br>
+      void&nbsp;&nbsp;&nbsp;
+      setVerticalScrollBarPolicy(Qt::ScrollBarPolicy)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      //设置垂直滚动条的显示策略</div>
+    Qt::ScrollBarPolicy 枚举常量包括如下数值：<br>
+    <br>
+    <table class="tabel">
+      <tbody>
+        <tr class="d1">
+          <td style="width: 180px;" align="center">常量</td>
+          <td style="width: 120px;" align="center">数值</td>
+          <td align="center"><b> 描述</b></td>
+        </tr>
+        <tr>
+          <td>Qt::ScrollBarAsNeeded</td>
+          <td>&nbsp;0</td>
+          <td> 内容超出视口区域才显示滚动条，否则不显示，默认策略就是该数值。</td>
+        </tr>
+        <tr class="d1">
+          <td style="height: 16px;">Qt::ScrollBarAlwaysOff</td>
+          <td>&nbsp;1</td>
+          <td> 永远不显示滚动条，通过鼠标滚轮或键盘上下键盲滚动。</td>
+        </tr>
+        <tr>
+          <td style="height: 16px;">Qt::ScrollBarAlwaysOn</td>
+          <td>&nbsp;2</td>
+          <td> 不管内容区域多大，总是显示滚动条。对于Mac10.7以上系统，滚动条是瞬态显示的，就会忽略该数值。</td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    默认数值 Qt::ScrollBarAsNeeded 是比较合适的，有需要就显示，不需要就不显示。<br>
+    通常 ensureVisible() 和 ensureWidgetVisible()
+    两个函数能够应付大多数的需要滚动的场景，如果有额外需求，那么还可以直接获取水平滚动条和垂直滚动条来设置：<br>
+    <div class="code">QScrollBar * QAbstractScrollArea::​horizontalScrollBar()
+      const<br>
+      QScrollBar * QAbstractScrollArea::verticalScrollBar() const</div>
+    这两个函数是从基类 QAbstractScrollArea 继承的，滚动条的类型是 QScrollBar，可以使用滚动条自己的函数来设置滚动到的位置：<br>
+    <div class="code">void&nbsp;&nbsp;&nbsp;
+      QScrollBar::​setValue(int)&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;
+      //设置滚动到参数值位置，只能介 于最小值和最大值之间<br>
+      int&nbsp;&nbsp;&nbsp; QScrollBar::value()
+      const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; //获取滚动条当前位置<br>
+      int&nbsp;&nbsp;&nbsp; QScrollBar::minimum() const&nbsp;&nbsp; //最小位置<br>
+      int&nbsp;&nbsp;&nbsp; QScrollBar::maximum() const&nbsp;&nbsp; //最大位置</div>
+    <br>
+    当 QScrollArea
+    包裹控件容器时，有可能对子孙控件的显示缩放不合适，子孙控件由于缩放被隐藏了，这时候通过调用子控件的QWidget::setMinimumSize()
+    函数，设置子孙控件的最小尺寸，这样保证子孙控件的绘图区域，从而避免被隐藏。<br>
+    使用布局器时，布局器的 sizeConstraint 属性也会影响子孙控件的缩放，该枚举常量数值如下表所示：<br>
+    <br>
+    <table class="tabel">
+      <tbody>
+        <tr class="d1">
+          <td style="width: 180px;" align="center">常量</td>
+          <td style="width: 120px;" align="center">数值</td>
+          <td align="center"><b> 描述</b></td>
+        </tr>
+        <tr>
+          <td>QLayout::SetDefaultConstraint</td>
+          <td>&nbsp;0</td>
+          <td> 控件的最小尺寸默认设置为 QLayout::​minimumSize() ，除非控件自己设置了最小尺寸。</td>
+        </tr>
+        <tr class="d1">
+          <td style="height: 16px;">QLayout::SetFixedSize</td>
+          <td>&nbsp;3</td>
+          <td> 控件尺寸设置为 QLayoutItem::​sizeHint()，尺寸固定不能变化。</td>
+        </tr>
+        <tr>
+          <td style="height: 16px;">QLayout::SetMinimumSize</td>
+          <td>&nbsp;2</td>
+          <td> 控件最小尺寸为 QLayout::​minimumSize()，不能更小。</td>
+        </tr>
+        <tr class="d1">
+          <td style="height: 16px;">QLayout::SetMaximumSize</td>
+          <td>&nbsp;4</td>
+          <td> 控件最大尺寸为 QLayout::​maximumSize()，不能更大。</td>
+        </tr>
+        <tr>
+          <td style="height: 16px;">QLayout::SetMinAndMaxSize</td>
+          <td>&nbsp;5</td>
+          <td> 控件尺寸位于 QLayout::​minimumSize() 和 QLayout::​maximumSize() 之间。</td>
+        </tr>
+        <tr class="d1">
+          <td style="height: 16px;">QLayout::SetNoConstraint</td>
+          <td>&nbsp;1</td>
+          <td> 控件尺寸没有任何限制。</td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    修改布局器的 sizeConstraint 属性，QScrollArea 也会根据这个属性变化改变子孙控件布局。布局器
+    sizeConstraint&nbsp; 属性的默认值为 QLayout::SetDefaultConstraint 。<br>
+    QScrollArea 的内容介绍到这，下面我们学习一个滚动区域的示例。<br>
+    我们先下载两个文件，一个是地图图片，另一个是省份在图片中像素位置的文本文件：<br>
+    <a href="https://qtguide.ustclug.org/QtProjects/ch10/geography/china.png" target="new">
+      https://qtguide.ustclug.org/QtProjects/ch10/geography/china.png</a><br>
+    <a href="https://qtguide.ustclug.org/QtProjects/ch10/geography/china.txt" target="new">
+      https://qtguide.ustclug.org/QtProjects/ch10/geography/china.txt</a><br>
+    下载好 china.png 、china.txt 备用。<br>
+    我们打开 QtCreator，新建一个 Qt Widgets Application 项目，在新建项目的向导里填写：<br>
+    ①项目名称 geography，创建路径 D:\QtProjects\ch10，点击下一步；<br>
+    ②套件选择里面选择全部套件，点击下一步；<br>
+    ③基类选择 QWidget，点击下一步；<br>
+    ④项目管理不修改，点击完成。<br>
+    我们把下载好的 china.png 、china.txt 复制到项目文件夹 D:\QtProjects\ch10\geography，然后我们在
+    QtCreator 界面项目视图，右击根节点项目名geography，在右键菜单选择“添加新文件”，弹出新建文件的对话框，在新建文件对话框中，左边选择
+    “Qt” ，右边选择“Qt Resource File”，如图所示：<br>
+    <center> <img src="images/ch10/ch10-02-02.png" alt="newfile1" width="600"></center>
+    点击新建文件对话框的 “Choose...”按钮，进入下一步：<br>
+    <center> <img src="images/ch10/ch10-02-03.png" alt="newfile2" width="600"></center>
+    在文件名称编辑框里填写： map.qrc<br>
+    然后路径不变，点击“下一步” 按钮，进入下面界面：<br>
+    <center> <img src="images/ch10/ch10-02-04.png" alt="newfile3" width="600"></center>
+    不用修改，点击“完成”按钮，回到 QtCreator 界面，这样我们就新建了 Qt 资源文件 map.qrc 。<br>
+    我们在左边项目视图右击 map.qrc 文件，在右键菜单选择“添加现有文件...”，然后选择 china.png 、china.txt 两个文件添加到
+    map.qrc 资源文件里面。添加好之后，可以看到 map.qrc 现在包含两个资源：<br>
+    <center> <img src="images/ch10/ch10-02-05.png" alt="newfile4" width="600"></center>
+    资源文件就编辑好了。这个例子我们显示一张中国地图，然后新建 34 个单选按钮，点击哪个按钮，就显示哪个省份地图位置。<br>
+    地图较大，我们使用 QScrollArea 包裹地图以便于滚动显示；34个单选按钮也很多，我们使用容器包裹这些单选按钮，然后用 QScrollArea
+    包裹容器，这样可以滚动显示很多的按钮。<br>
+    按钮特别多情况下，我们这里使用代码来创建界面，widget.ui 界面文件我们不修改，全都用代码来生成。<br>
+    下面我们开始编辑头文件 widget.h 的内容：<br>
+    <div class="code"><span style=" color:#000080;">#ifndef</span><span style=" color:#c0c0c0;">
+      </span>WIDGET_H
+      <pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#define</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000080;">WIDGET_H</span></pre>
+      <pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QWidget&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QScrollArea&gt;</span><span style=" color:#c0c0c0;">  </span><span
+style=" color:#008000;">//滚动区域</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QLabel&gt;</span><span style=" color:#c0c0c0;">       </span><span
+style=" color:#008000;">//标签用于显示图片</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QRadioButton&gt;</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//单选按钮</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QHBoxLayout&gt;</span><span style=" color:#c0c0c0;">  </span><span
+style=" color:#008000;">//水平布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QVBoxLayout&gt;</span><span style=" color:#c0c0c0;">  </span><span
+style=" color:#008000;">//垂直布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QStringList&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QList&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QPoint&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QPixmap&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QSignalMapper&gt;</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//信号高级映射</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">namespace</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Ui</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">class</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">class</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Widget</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">:</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">public</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QWidget</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000080;">Q_OBJECT</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">public</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">explicit</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">(</span><span style=" color:#800080;">QWidget</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span>parent<span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000080;">0</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">~</span><span style=" font-style:italic; color:#000000;">Widget</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">();</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">public</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">slots</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//信号映射将所有按钮的信号都发给该槽函数</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">ShowProvince</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">int</span><span style=" color:#c0c0c0;"> </span>index<span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">private</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">Ui</span><span
+style=" color:#000000;">::</span><span style=" color:#800080;">Widget</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//省份名称</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QStringList</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listProvinces</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//像素点位置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QList</span><span
+style=" color:#000000;">&lt;</span><span style=" color:#800080;">QPoint</span><span
+style=" color:#000000;">&gt;</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//地图</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QPixmap</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_map</span><span
+style=" color:#000000;">;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//加载地图和文本数据，包含省份和像素点位置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">LoadData</span><span
+style=" color:#000000;">();</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//信号映射对象指针</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QSignalMapper</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">m_pSigMapper</span><span
+style=" color:#000000;">;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//标签显示图片</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QLabel</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">m_labelMap</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//左边滚动区域显示绘图</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QScrollArea</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//右边滚动区域显示一大堆按钮</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QScrollArea</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">m_saRightButtons</span><span
+style=" color:#000000;">;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">};</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#endif</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">WIDGET_H</span></pre></div>
+    文件开头我们添加多个类的包含，然后为窗口类添加控件初始化函数 InitControls() ；<br>手动编辑一个公开槽函数 ShowProvince(int) ，这个参数是按钮映射的整数序号，通过序号区分 34 个单选按钮；<br>我们添加成员变量 m_listProvinces 保存省份名称，m_listPoints 保存省份在地图的坐标位置，<br>m_map 保存地图图片，LoadData() 函数用于初始化时从资源文件加载图片和文本文件，<br>m_pSigMapper 保存信号映射对象，专门批量处理 34 个单选按钮的点击信号，m_labelMap 保存标签对象，用于显示绘图，<br>m_saLeftMap 保存用于左边显示地图的滚动区域对象，m_saRightButtons 用于保存右边显示按钮的滚动区域对象。<br><br>
+    下面我们分段编辑 widget.cpp 源文件，首先是构造函数部分：<br>
+     <div class="code"><span style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">"widget.h"</span>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">"ui_widget.h"</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QDebug&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QFile&gt;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">::</span><span
+style=" color:#000000;">Widget</span><span style=" color:#000000;">(</span><span
+style=" color:#800080;">QWidget</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">*</span><span style=" color:#000000;">parent</span><span
+style=" color:#000000;">)</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#000000;">parent</span><span
+style=" color:#000000;">),</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Ui</span><span style=" color:#000000;">::</span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setupUi</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">this</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//加载地图和文本数据，包含省份和像素点位置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">LoadData</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">::~</span><span
+style=" font-style:italic; color:#000000;">Widget</span><span style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">delete</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800000;">ui</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+          
+    在构造函数添加了 LoadData() 从资源文件加载数据，然后调用 InitControls() 初始化界面控件。<br>我们下面编辑加载数据的函数：<br>
+      <div class="code">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//加载地图和文本数据，包含省份和像素点位置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">LoadData</span><span
+style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//加载地图</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_map</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">load</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">":/china.png"</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//读取文本文件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QFile</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">fileIn</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">":/china.txt"</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_listProvinces</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">clear</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">clear</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//打开文件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">fileIn</span><span
+style=" color:#000000;">.</span><span style=" font-style:italic; color:#000000;">open</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QIODevice</span><span
+style=" color:#000000;">::</span><span style=" color:#800080;">ReadOnly</span><span
+style=" color:#000000;">|</span><span style=" color:#800080;">QIODevice</span><span
+style=" color:#000000;">::</span><span style=" color:#800080;">Text</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">while</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">!</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">fileIn</span><span
+style=" color:#000000;">.</span><span style=" font-style:italic; color:#000000;">atEnd</span><span
+style=" color:#000000;">()</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800080;">QByteArray</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">baLine</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">fileIn</span><span style=" color:#000000;">.</span><span
+style=" color:#000000;">readLine</span><span style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strLine</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">QString</span><span style=" color:#000000;">::</span><span
+style=" color:#000000;">fromUtf8</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">baLine</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800080;">QStringList</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">liParts</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">strLine</span><span style=" color:#000000;">.</span><span
+style=" color:#000000;">split</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">'\t'</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800080;">QPoint</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">pt</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800000;">m_listProvinces</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&lt;&lt;</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">liParts</span><span
+style=" color:#000000;">[</span><span style=" color:#000080;">0</span><span style=" color:#000000;">];</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#000000;">pt</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">setX</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">liParts</span><span
+style=" color:#000000;">[</span><span style=" color:#000080;">1</span><span style=" color:#000000;">].</span><span
+style=" color:#000000;">toInt</span><span style=" color:#000000;">()</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#000000;">pt</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">setY</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">liParts</span><span
+style=" color:#000000;">[</span><span style=" color:#000080;">2</span><span style=" color:#000000;">].</span><span
+style=" color:#000000;">toInt</span><span style=" color:#000000;">()</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">&lt;&lt;</span><span style=" color:#000000;">pt</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">}</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//加载完毕</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000080;">qDebug</span><span
+style=" color:#000000;">()&lt;&lt;</span><span style=" color:#800000;">m_listProvinces</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">size</span><span style=" color:#000000;">()&lt;&lt;</span><span
+style=" color:#800000;">m_listProvinces</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000080;">qDebug</span><span
+style=" color:#000000;">()&lt;&lt;</span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">.</span><span style=" color:#000000;">size</span><span style=" color:#000000;">()&lt;&lt;</span><span
+style=" color:#800000;">m_listPoints</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>     
+          
+          
+   使用 m_map 的 load() 函数读取资源中的地图文件 ":/china.png" ；<br>根据文本文件 ":/china.txt" 新建文件读取对象 fileIn，清空 m_listProvinces 和 m_listPoints 两个列表；<br>以只读模式打开文件对象 fileIn；然后循环读取文件每一行到字节数组 baLine；<br>文件中的汉字使用 utf-8 编码，因此使用字符串的函数 QString::fromUtf8() 把字节数组转为字符串 strLine；<br>文本文件每一行都是三个数据，使用 '\t' 制表符分隔，因此使用切分函数，一行文本切成三段：<br>第 0 段是省份名称，第 1 段是 x 坐标，第 2 段是 y 坐标。<br>针对每行的三段文本，省份名称直接存到 m_listProvinces；<br>第 1 段和第 2 段转为整数之后存到 pt 点，然后把 pt 点存到 m_listPoints。<br>处理完文件后，我们打印省份个数和列表，打印点的个数和点列表。<br><br>
+          接下里我们重点学习这个初始化控件函数：<br>
+  <div class="code">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//使用QLabel绘图</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_labelMap</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QLabel</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_labelMap</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setPixmap</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_map</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//构建滚动区域包裹标签</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QScrollArea</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_labelMap</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//右边容器和布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QWidget</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#000000;">pWidRight</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QWidget</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QVBoxLayout</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#000000;">pLayoutRight</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QVBoxLayout</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//用于循环新建单选按钮</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QRadioButton</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#000000;">curButton</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000080;">NULL</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_pSigMapper</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QSignalMapper</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">this</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//个数</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">int</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">nCount</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800000;">m_listProvinces</span><span style=" color:#000000;">.</span><span
+style=" color:#000000;">size</span><span style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">for</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">int</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">i</span><span style=" color:#000000;">=</span><span style=" color:#000080;">0</span><span
+style=" color:#000000;">;</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">i</span><span
+style=" color:#000000;">&lt;</span><span style=" color:#000000;">nCount</span><span
+style=" color:#000000;">;</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">i</span><span
+style=" color:#000000;">++)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#000000;">curButton</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QRadioButton</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listProvinces</span><span
+style=" color:#000000;">[</span><span style=" color:#000000;">i</span><span style=" color:#000000;">]</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#008000;">//关联信号到信号映射对象</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#000000;">connect</span><span
+style=" color:#000000;">(</span><span style=" color:#000000;">curButton</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">SIGNAL</span><span
+style=" color:#000000;">(</span>clicked<span style=" color:#000000;">()),</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">                </span><span style=" color:#800000;">m_pSigMapper</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">SLOT</span><span
+style=" color:#000000;">(</span>map<span style=" color:#000000;">())</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#008000;">//设置映射参数，将当前按钮的编号设置为</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">i</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#800000;">m_pSigMapper</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setMapping</span><span
+style=" color:#000000;">(</span><span style=" color:#000000;">curButton</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">i</span><span
+style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#008000;">//添加到布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">        </span><span style=" color:#000000;">pLayoutRight</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">addWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">curButton</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">}</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//将信号映射对象的</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">mapped()</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">信号关联到统一的槽函数</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">connect</span><span
+style=" color:#000000;">(</span><span style=" color:#800000;">m_pSigMapper</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">SIGNAL</span><span
+style=" color:#000000;">(</span>mapped<span style=" color:#000000;">(</span><span
+style=" color:#808000;">int</span><span style=" color:#000000;">)),</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">            </span><span style=" color:#808000;">this</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">SLOT</span><span
+style=" color:#000000;">(</span>ShowProvince<span style=" color:#000000;">(</span><span
+style=" color:#808000;">int</span><span style=" color:#000000;">))</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//布局器设置给右边容器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">pWidRight</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setLayout</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">pLayoutRight</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//新建右边滚动区域，将容器设置给右边滚动区域</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saRightButtons</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QScrollArea</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saRightButtons</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">pWidRight</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//主界面布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QHBoxLayout</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QHBoxLayout</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">addWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">addWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_saRightButtons</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setStretch</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">0</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">4</span><span
+style=" color:#000000;">);</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">//左边拉伸因子</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">4</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setStretch</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">1</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">1</span><span
+style=" color:#000000;">);</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">//右边拉伸因子</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">1</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//主窗口布局器</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">setLayout</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">pMainLayout</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//窗口大小</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">resize</span><span
+style=" color:#000000;">(</span><span style=" color:#000080;">800</span><span style=" color:#000000;">,</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000080;">600</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//最后一个单选按钮选中</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">curButton</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setChecked</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">true</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//显示最后一个单选按钮</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saRightButtons</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">ensureWidgetVisible</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">curButton</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//视口保证最后一个点会显示</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">ensureVisible</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">[</span><span style=" color:#000000;">nCount</span><span
+style=" color:#000000;">-</span><span style=" color:#000080;">1</span><span style=" color:#000000;">].</span><span
+style=" color:#000000;">x</span><span style=" color:#000000;">(),</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800000;">m_listPoints</span><span style=" color:#000000;">[</span><span
+style=" color:#000000;">nCount</span><span style=" color:#000000;">-</span><span
+style=" color:#000080;">1</span><span style=" color:#000000;">].</span><span style=" color:#000000;">y</span><span
+style=" color:#000000;">(),</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">200</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">200</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+          
+  该函数先创建了标签对象存到 m_labelMap，并设置显示图片 m_map；<br>新建滚动区域存到 m_saLeftMap，设置滚动区域的子控件为 m_labelMap，用于显示大地图。<br>然后我们新建右边的容器 pWidRight、布局器 pLayoutRight；<br>curButton 指针用于临时保存后面循环中创建的每个按钮对象；<br>新建信号映射对象存到 m_pSigMapper，信号映射 QSignalMapper 的作用就是将大量有规律的信号映射到一个槽函数，批量处理。<br>然后获取省份计数，循环开始处理：<br>&nbsp;&nbsp;&nbsp; 新建单选按钮存到 curButton；<br>&nbsp;&nbsp;&nbsp; 关联按钮的点击信号到 m_pSigMapper 的槽函数 map() ；<br>&nbsp;&nbsp;&nbsp; 调用 m_pSigMapper-&gt;setMapping(curButton, i)，设置当前按钮映射的规律序号为 i ；<br>&nbsp;&nbsp;&nbsp; 将按钮 curButton 添加到右边布局器 pLayoutRight；<br>循环处理完之后，我们将 m_pSigMapper 对象的信号 mapped(int) 关联到槽函数 ShowProvince(int)，参数就是按钮映射的规律序号；<br>然后我们将右边布局器 pLayoutRight 设置给容器 pWidRight；<br>新建右边的滚动区域对象 m_saRightButtons，把容器 pWidRight 设置给右边滚动区域来显示；<br>接下来我们新建主界面布局器 pMainLayout，把两个滚动区域 m_saLeftMap、m_saRightButtons 添加给主界面布局器；<br>设置主界面布局器两个控件的拉伸因子分别为 4 和 1，这样左边地图滚动区域和右边按钮滚动区域的宽度显示比例 4:1 ；<br>将 pMainLayout 设置给主界面窗口；调整窗口大小为&nbsp; 800*600；<br>我们设置最后的单选按钮 curButton 为选中状态；<br>通过 m_saRightButtons-&gt;ensureWidgetVisible() 函数显示该按钮的区域；<br>通过 m_saLeftMap-&gt;ensureVisible() 函数显示该按钮对应的地图点所在区域。<br><br>这里说明一下 QSignalMapper ，信号映射类专门处理批量的信号，该类的用法就是三步走：<br>第一步，将批量控件的信号关联到 QSignalMapper 的槽函数 map() ；<br>
+          第二步，将批量控件对象映射为整数序号或字符串：<br>
+   <div class="code">void&nbsp;&nbsp; &nbsp;setMapping(QObject * sender, int id)<br>void&nbsp;&nbsp; &nbsp;setMapping(QObject * sender, const QString &amp; text)</div>
+          第三步，将 QSignalMapper 的信号 mapped() 关联到一个槽函数，槽函数的参数与该信号的参数一样：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;mapped(int i)<br>void&nbsp;&nbsp; &nbsp;mapped(const QString &amp; text)</div>
+          这些批量的控件发信号时，QSignalMapper 自动根据源对象信号，生成新的带参数映射信号，调用带参数的槽函数，槽函数可以通过参数的整数值或字符串来判断是谁发的信号，就根据源头控件进行处理。除了整数序号和字符串，QSignalMapper 也支持参数里为 QWidget * widget&nbsp; 或者QObject * object映射，可以将发射信号的控件指针直接传给槽函数。<br><br>对于大批量的控件信号，如果使用普通办法一个个新建槽函数，那么槽函数添加太多也容易出错，最好的办法是使用 QSignalMapper 映射，这样我们只需要一个槽函数就能处理大批量控件的信号。<br><br>
+          最后我们来编辑槽函数 ShowProvince(int)代码：<br>
+     <div class="code">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//信号映射将所有按钮的信号都发给该槽函数</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">ShowProvince</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">int</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">index</span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">m_saLeftMap</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">ensureVisible</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">[</span><span style=" color:#000000;">index</span><span
+style=" color:#000000;">].</span><span style=" color:#000000;">x</span><span style=" color:#000000;">(),</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800000;">m_listPoints</span><span
+style=" color:#000000;">[</span><span style=" color:#000000;">index</span><span
+style=" color:#000000;">].</span><span style=" color:#000000;">y</span><span style=" color:#000000;">(),</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000080;">200</span><span style=" color:#000000;">,</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000080;">200</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+          这个槽函数根据参数 index 决定点的序号，然后使用 m_saLeftMap-&gt;ensureVisible() 滚动显示该点位置，就是省份所在位置。<br>例子代码讲解到这，我们生成项目，运行例子：<br>
+    <center> <img src="images/ch10/ch10-02-06.png" alt="run1"></center> 
+    
+          示例程序启动时，左边地图显示了“澳门”区域，右边也滚动到了“澳门特别行政区”的单选按钮，就是代码里设置的效果，<br>单选按钮只显示了一半，因为滚动区域判断能看到该单选按钮就可以了，没有设置显示控件的全貌，属于能凑合显示就行的设置。<br>我们滚动右边按钮区域，点击“黑龙江省”的单选按钮，地图就自动切换显示黑龙江省的区域：<br>
+    <center> <img src="images/ch10/ch10-02-07.png" alt="run2"></center>  
+          如果点击的省份点坐标不在当前显示区域内，滚动区域就会滚动显示到该省份；<br>如果点击的省份点坐标在当前显示区域内，点击了就没有反应，因为已经显示了，不需要挪动。<br>本示例内容介绍到这，下面我们介绍工具箱容器。<br>
+    <br>
+    <div class="os2">10.2.2 Tool Box 工具箱</div>
+    <br>
+    工具箱容器 QToolBox 可以容纳多个标签页，每个标签页就像柜子的抽屉一样堆叠在一起，通过点击多个标签页标题栏切换页面显示，每次显示一个标签页。<br>多个标签页可以按照功能分类，将同类型控件放在一个标签页内，多个标签页切换显示，就可以实现很多的功能。QToolBox 如下图所示：<br>
+     <center> <img src="images/ch10/ch10-02-08.png" alt="toolbox1"></center>  
+          
+          Page1 是默认显示的标签页，标题栏是黄色背景的文本 "Page 1"，标签页的背景色是绿色的，当我们点击 "Page 2" 标题栏时，就会切换显示第二个标签页，多个标签页切换像是单选按钮，每次启用一个：<br>
+    <center> <img src="images/ch10/ch10-02-09.png" alt="toolbox2"></center>  
+          QToolBox 将每个页面当做一个 item，每个 item 都有 widget 页面，并且 item 可以带有标题文本、序号、图标、工具提示（ToolTip），比较接近列表控件的条目，列表控件的条目是文本图标为主，而 QToolBox 条目都是一个带标题的标签页 widget。<br>
+          QToolBox 添加标签页条目的函数如下：<br>
+   <div class="code">int&nbsp;&nbsp; &nbsp;addItem(QWidget * widget, const QIcon &amp; iconSet, const QString &amp; text)<br>int&nbsp;&nbsp;&nbsp; addItem(QWidget * w, const QString &amp; text)<br>int&nbsp;&nbsp;&nbsp; insertItem(int index, QWidget * widget, const QIcon &amp; icon, const QString &amp; text)<br>int&nbsp;&nbsp;&nbsp; insertItem(int index, QWidget * widget, const QString &amp; text)</div>
+          addItem() 函数将新标签页追加到所有标签页的末尾，是追加最后一个；insertItem() 是将新标签页插入到序号为 index 的位置，原来序号之后的标签页往后挪动一个。注意 widget 页面不能为空，文本一般不为空，表示该标签页的功能描述，图标可以没有。<br>
+      删除条目的函数如下：<br>
+    <div class="code">void&nbsp;&nbsp; &nbsp;removeItem(int index)</div>
+          注意 removeItem() 仅是将指定序号的标签页卸载下来，该页面不会被 delete，删除的是工具箱条目信息，而不会删除标签页 widget 控件本身。<br><br>获取工具箱包含的标签页总数使用下面函数：<br>
+  <div class="code">int&nbsp;&nbsp; &nbsp;count() const</div>
+          
+          工具箱的标签页每次只能激活一个当前页面，获取当前页面的序号、标签页指针使用下面函数：<br>
+  <div class="code">int&nbsp;&nbsp; &nbsp;currentIndex() const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //获取当前页面的序号，如果工具箱没有任何标签页，返回 -1<br>QWidget *&nbsp;&nbsp;&nbsp; currentWidget() const&nbsp; ////获取当前页面的指针，如果工具箱没有任何标签页，返回 NULL</div>
+          设置当前激活的页面是两个槽函数：<br>
+  <div class="code">void&nbsp;&nbsp; &nbsp;setCurrentIndex(int index)&nbsp; //槽函数，根据序号设置新的当前页面<br>void&nbsp;&nbsp;&nbsp; setCurrentWidget(QWidget * widget)&nbsp; ////槽函数，根据页面指针设置新的当前页面</div>当前页面序号变化时，会触发序号变化的信号：<br>
+  <div class="code">void&nbsp;&nbsp; &nbsp;currentChanged(int index)&nbsp;&nbsp; //当前页面切换时触发的信号</div><br>根据标签页的序号，可以修改标题文本、图标以及工具提示：<br>
+  <div class="code">QIcon&nbsp;&nbsp; &nbsp;itemIcon(int index) const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //获取页面标题图标<br>QString&nbsp;&nbsp;&nbsp; itemText(int index) const&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //获取页面标题文本<br>QString&nbsp;&nbsp;&nbsp; itemToolTip(int index) const&nbsp; //获取页面标题工具提示<br>void&nbsp;&nbsp;&nbsp; setItemIcon(int index, const QIcon &amp; icon)&nbsp;&nbsp;&nbsp; //设置页面标题图标<br>void&nbsp;&nbsp;&nbsp; setItemText(int index, const QString &amp; text)&nbsp; //设置页面标题文本<br>void&nbsp;&nbsp;&nbsp; setItemToolTip(int index, const QString &amp; toolTip)&nbsp; //设置页面标题工具提示</div>
+          <br>可以根据序号查页面指针，也可以根据页面指针反查序号，使用下面一对函数：<br>
+  <div class="code">QWidget *&nbsp;&nbsp; &nbsp;widget(int index) const&nbsp; //序号正确，返回正确的页面指针，如果序号错误或没有任何页面，返回 NULL<br>int&nbsp;&nbsp;&nbsp; indexOf(QWidget * widget) const&nbsp; //如果页面属于工具子页面，那么返回序号，如果不属于工具箱，返回 -1</div>
+          <b>使用工具箱的函数时，注意返回的序号数值可能是 -1，返回的指针可能是 NULL，要注意判断这些异常值，避免产生 bug。</b><br><br>每个标签页可以设置为启用状态或禁用状态，禁用的标签页里面子控件也都处于禁用状态：<br>
+  <div class="code">bool&nbsp;&nbsp; &nbsp;isItemEnabled(int index) const&nbsp;&nbsp; //根据序号查询标签页是否启用<br>void&nbsp;&nbsp;&nbsp; setItemEnabled(int index, bool enabled)&nbsp; //根据序号设置标签页的启用或禁用状态</div>
+          QToolBox 的基类是&nbsp; QFrame，继承了边框绘制功能，可以参照 “10.1.2 Frame 框架”小节设置定制的边框。<br>工具箱类的内容介绍到这，下面我们学习一个示例，通过工具箱内容设置一个 Label 控件。<br>我们打开 QtCreator，新建一个 Qt Widgets Application 项目，在新建项目的向导里填写：<br>①项目名称 labeldesign，创建路径 D:\QtProjects\ch10，点击下一步；<br>②套件选择里面选择全部套件，点击下一步；<br>③基类选择 QWidget，点击下一步；<br>④项目管理不修改，点击完成。<br>我们打开 widget.ui 界面文件，向里面拖入一个标签 Label 和一个 Tool Box 容器：<br>
+  <center> <img src="images/ch10/ch10-02-10.png" alt="ui1" width="800"></center>  
+          我们将标签的对象名修改为 labelShow ，设置标签 sizePolicy 的水平和垂直策略都为 Expanding：<br>
+  <center> <img src="images/ch10/ch10-02-11.png" alt="ui2" width="800"></center>                
+          工具箱容器默认就有两个页面，将右边工具箱容器长宽调整拉大一些，方便后续拖入子控件。<br>点击右边工具箱的 Page 1 标题栏，修改 toolBox 当前页的属性，将 currentItemText 修改为“编辑文本”，将 currentItemName 修改为 pageText：<br>
+  <center> <img src="images/ch10/ch10-02-12.png" alt="ui3" width="800"></center>  
+          这样就修改了第 0 序号的页面标题和页面对象名。<br>我们点击“Page 2”标题栏，点击该标题后会展开第 1 序号页面，再修改 currentItemText 修改为“字体字号”，将 currentItemName 修改为 pageFont：<br>
+  <center> <img src="images/ch10/ch10-02-13.png" alt="ui4" width="800"></center> 
+          工具箱容器支持更多的页面，我们右击工具箱容器，在右键菜单选择“插入页”--&gt;“在当前页之后”：<br>
+  <center> <img src="images/ch10/ch10-02-14.png" alt="ui5" width="800"></center>    
+          点击在当前页之后插入页，工具箱容器就会新增一个页面，序号为 2：<br>
+  <center> <img src="images/ch10/ch10-02-15.png" alt="ui6" width="800"></center>  
+          点击“页”标题栏，我们再修改工具箱容器的 currentItemText 修改为“颜色设置”，将 currentItemName 修改为 pageColor：<br>
+  <center> <img src="images/ch10/ch10-02-16.png" alt="ui7" width="800"></center> 
+          这样我们设置了三个标签页，如果希望删除某个页面，先点击该页的标题展开页面，然后右击该页面，在右键菜单“N 的页N”--&gt;“删除页”即可，N代表该页面的序号数字。<br>如果希望调整页面排序，那么右击工具箱容器，点击右键菜单“改变页顺序...”，弹出对话框：<br>
+   <center> <img src="images/ch10/ch10-02-17.png" alt="ui8" width="800"></center> 
+          在该对话框可以用右边上下箭头按钮调整页面的排序，我们这里例子不需要修改排序，点击“Cancel”即可。<br>现在三个标签页是空的，未填充子控件，我们先点击“编辑文本”标题栏，展开第 0 序号标签，向其中拖入单行编辑器和一个按钮，<br>单行编辑器对象名修改为 lineEditText ，按钮对象名 pushButtonEditText，显示文本为“修改文本”：<br>
+   <center> <img src="images/ch10/ch10-02-18.png" alt="pageText" width="800"></center> 
+          工具箱内容的布局，总是以选中 toolBox 开始布局，而不是选中 pageText 子页面布局，子页面属于容器，在界面编辑时不算独立控件，不能以子页面操作布局器。<br>我们点击选中工具箱容器 toolBox，然后点击上方垂直布局按钮，对工具箱的当前页面实现布局操作：<br>
+   <center> <img src="images/ch10/ch10-02-19.png" alt="pageTextLayout"></center> 
+          无论是编辑工具箱页面标题还是布局器，都是以选中工具箱容器为基础，然后修改属性或进行布局，修改或布局操作会自动处理工具箱的当前页面。<br>我们再点击“字体字号”页面，展开该页面，我们拖入 Font Combo Box 和 Spin Box，字体组合框对象名 fontComboBox，字号的旋钮框对象名为 spinBoxSize：<br>
+   <center> <img src="images/ch10/ch10-02-20.png" alt="pageFont" width="800"></center> 
+          然后我们选中 toolBox 对象，点击上方垂直布局按钮，对当前的“字体字号”页面进行垂直布局：<br>
+   <center> <img src="images/ch10/ch10-02-21.png" alt="pageFontLayout"></center>  
+          接下来我们点击“颜色设置”标题栏，展开该页面，拖入两个标签和两个组合框，<br>第一行的标签文本“前景色”，组合框对象名为 comboBoxFGColor；第二行标签文本 “背景色”，组合框对象名 comboBoxBGColor：<br>
+   <center> <img src="images/ch10/ch10-02-22.png" alt="pageColor" width="800"></center>      
+          对于现在展开的“颜色设置”页面，我们选中工具箱 toolBox 对象，然后点击上方的栅格布局器按钮，进行网格布局：<br>
+    <center> <img src="images/ch10/ch10-02-23.png" alt="pageColorLayout"></center>  
+          这样我们完成了三个标签页的子控件拖入和布局。<br>对于主窗口，我们选中 Widget 根节点，点击水平布局按钮，将 labelShow 控件和工具箱容器按照水平布局：<br>
+    <center> <img src="images/ch10/ch10-02-24.png" alt="mainLayout"></center>  
+          主窗口大小修改为为 520*400，这样方便展示较宽的字体组合框。<br>下面我们为工具箱容器中的子控件添加槽函数：<br>点击“编辑文本”标题栏，展开该标签页，右击“修改文本”按钮，右键菜单选择“转到槽...”，为该按钮添加 clicked() 信号的槽函数：<br>
+   <center> <img src="images/slots/buttonclicked.png" alt="slot1"></center>  
+          点击“字体字号”标题栏，展开该标签页，右击字体组合框，右键菜单选择“转到槽...”，为该控件添加 currentIndexChanged(QString) 信号的槽函数：<br>
+  <center> <img src="images/slots/comboBoxIndexChangedQString.png" alt="slot2"></center>  
+          右击 spinBoxSize 旋钮编辑框，右键菜单选择“转到槽...”，为该控件添加 valueChanged(int) 信号的槽函数：<br>
+  <center> <img src="images/slots/valueChangedint.png" alt="slot3"></center>  
+          
+          然后我们点击“颜色设置”标题栏，展开该标签页，右击前景色组合框，为该控件添加  currentIndexChanged(QString) 信号的槽函数：<br>
+  <center> <img src="images/slots/comboBoxIndexChangedQString.png" alt="slot4"></center>  
+          我们再右击背景色组合框，为该控件添加  currentIndexChanged(QString) 信号的槽函数：<br>
+    <center> <img src="images/slots/comboBoxIndexChangedQString.png" alt="slot5"></center>  
+          添加好五个控件对应的槽函数之后，我们就可以保存并关闭 widget.ui 文件，开始编辑代码。<br>我们打开 widget.h 头文件，编辑如下：<br>
+   <div class="code"><span style=" color:#000080;">#ifndef</span><span style=" color:#c0c0c0;"> </span>WIDGET_H
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#define</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000080;">WIDGET_H</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QWidget&gt;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">namespace</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Ui</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">class</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">class</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Widget</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">:</span><span style=" color:#c0c0c0;"> </span><span style=" color:#808000;">public</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QWidget</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000080;">Q_OBJECT</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">public</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">explicit</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">(</span><span style=" color:#800080;">QWidget</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span>parent<span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000080;">0</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">~</span><span style=" font-style:italic; color:#000000;">Widget</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">();</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">private</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#808000;">slots</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">on_pushButtonEditText_clicked</span><span
+style=" color:#000000;">();</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">on_fontComboBox_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span>arg1<span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">on_spinBoxSize_valueChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">int</span><span style=" color:#c0c0c0;"> </span>arg1<span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">on_comboBoxFGColor_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span>arg1<span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">void</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">on_comboBoxBGColor_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span>arg1<span
+style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">private</span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">Ui</span><span
+style=" color:#000000;">::</span><span style=" color:#800080;">Widget</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">*</span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">};</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#endif</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">WIDGET_H</span></pre></div>
+          
+          我们在窗口类里面添加一个初始化控件的函数 InitControls() ，其他代码都是自动生成的，包括我们添加的 5 个槽函数。<br>下面我们分段编辑源文件 widget.cpp ，首先是初始化部分：<br>
+<div class="code"><span style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">"widget.h"</span>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">"ui_widget.h"</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QMessageBox&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QDebug&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QFont&gt;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000080;">#include</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">&lt;QColor&gt;</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">::</span><span
+style=" color:#000000;">Widget</span><span style=" color:#000000;">(</span><span
+style=" color:#800080;">QWidget</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">*</span><span style=" color:#000000;">parent</span><span
+style=" color:#000000;">)</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">:</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QWidget</span><span
+style=" color:#000000;">(</span><span style=" color:#000000;">parent</span><span
+style=" color:#000000;">),</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">new</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">Ui</span><span style=" color:#000000;">::</span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setupUi</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">this</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#800080;">Widget</span><span style=" color:#000000;">::~</span><span
+style=" font-style:italic; color:#000000;">Widget</span><span style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#808000;">delete</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800000;">ui</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//初始化控件</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">InitControls</span><span
+style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//字号旋钮框的范围</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">spinBoxSize</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setRange</span><span
+style=" color:#000000;">(</span><span style=" color:#000080;">4</span><span style=" color:#000000;">,</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000080;">100</span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">spinBoxSize</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setValue</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000080;">9</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//颜色组合框的设置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//获取常见颜色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QStringList</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">colorNames</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">QColor</span><span style=" color:#000000;">::</span><span
+style=" color:#000000;">colorNames</span><span style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//设置前景色组合框</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">comboBoxFGColor</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">addItems</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">colorNames</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//默认前景色</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">黑色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">comboBoxFGColor</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setCurrentText</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">"black"</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//设置背景色组合框</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">comboBoxBGColor</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">addItems</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">colorNames</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//默认背景色，浅灰</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">comboBoxBGColor</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setCurrentText</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">"lightgray"</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//修改工具箱本身的样式表</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">"::tab{</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">background-color:</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">magenta;</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">}"</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">            </span><span style=" color:#008000;">"QWidget#pageText{</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">background-color:</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">green;</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">}"</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">            </span><span style=" color:#008000;">"QWidget#pageFont{</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">background-color:</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">cyan;</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">}"</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">            </span><span style=" color:#008000;">"QWidget#pageColor{</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">background-color:</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">yellow;</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">}"</span><span style=" color:#000000;">;</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">toolBox</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setStyleSheet</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+          我们添加了 QFont、QColor 等类的头文件包含，在构造函数里调用 InitControls() 函数初始化控件。<br>InitControls() 函数首先设置字号旋钮框的取值范围 4~100，当前数值为 9 。<br>然后对两个颜色组合框进行设置，我们使用静态函数 QColor::colorNames() 获取常见颜色的字符串列表；<br>将颜色列表添加给前景色组合框，每个颜色名字符串都是一个组合框条目，设置默认的前景色为 "black" ；<br>然后同样地将颜色列表添加给背景色组合框，每个颜色名字符串都是一个组合框条目，设置默认的背景色为 "lightgray" 。<br>最后我们为工具箱容器定制样式表：<br>::tab 表示选中工具箱的所有标签页标题栏，设置背景色为 magenta；<br>QWidget#pageText 表示选中类名（基类名也生效）为 QWidget，井号代表同时选定对象名为 pageText&nbsp; 的控件对象，这样能确保我们选中唯一的对象，而不会对页面内部的以 QWidget 为基类的子控件生效，设置唯一匹配的 pageText&nbsp; 对象的背景色为 green；<br>后面两行同理，选中唯一对象 pageFont 页面，设置背景色 cyan；<br>选中唯一对象 pageColor 页面，设置背景色 yellow；最后将样式表字符串设置给 ui-&gt;toolBox 。<br><br>下面我们编辑修改文本按钮对应的槽函数：<br>
+   <div class="code"><span style=" color:#008000;">//修改左边标签控件的文本</span>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">on_pushButtonEditText_clicked</span><span
+style=" color:#000000;">()</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strText</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800000;">ui</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#800000;">lineEditText</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#000000;">text</span><span style=" color:#000000;">();</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">labelShow</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setText</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strText</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div> 
+          我们直接获取单行编辑器的文本，设置给左边 ui-&gt;labelShow 标签即可。<br><br>接下来我们编辑字体和字号控件对应的槽函数：<br>
+ 	<div class="code">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//字体设置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">on_fontComboBox_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QFont</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">txtFont</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">arg1</span><span
+style=" color:#000000;">,</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">spinBoxSize</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">value</span><span
+style=" color:#000000;">()</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">labelShow</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setFont</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">txtFont</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//字号设置</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">on_spinBoxSize_valueChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">int</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QFont</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">txtFont</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">fontComboBox</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">currentText</span><span
+style=" color:#000000;">(),</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">arg1</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">labelShow</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setFont</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">txtFont</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+          
+          两个函数代码类似的，根据字体组合框的当前字体名称文本和字号旋钮框的当前值，构造字体对象 txtFont；然后设置给 ui-&gt;labelShow 标签。<br><br>最后我们编辑两个颜色组合框对应的槽函数：<br>
+    			<div class="code">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//前景色修改</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">on_comboBoxFGColor_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strFGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">;</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//前景色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strBGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800000;">ui</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#800000;">comboBoxBGColor</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#000000;">currentText</span><span style=" color:#000000;">();</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">//背景色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//样式表</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">QString</span><span style=" color:#000000;">(</span><span
+style=" color:#008000;">"color:</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">%1;</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">background-color:</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">%2;"</span><span style=" color:#000000;">).</span><span
+style=" color:#000000;">arg</span><span style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">strFGColor</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">).</span><span style=" color:#000000;">arg</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strBGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">labelShow</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setStyleSheet</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#008000;">//背景色修改</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#808000;">void</span><span style=" color:#c0c0c0;"> </span><span style=" color:#800080;">Widget</span><span
+style=" color:#000000;">::</span><span style=" color:#000000;">on_comboBoxBGColor_currentIndexChanged</span><span
+style=" color:#000000;">(</span><span style=" color:#808000;">const</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">&amp;</span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">)</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">{</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strFGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800000;">ui</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#800000;">comboBoxFGColor</span><span style=" color:#000000;">-&gt;</span><span
+style=" color:#000000;">currentText</span><span style=" color:#000000;">();</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">//前景色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strBGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">arg1</span><span style=" color:#000000;">;</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">//背景色</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#008000;">//样式表</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800080;">QString</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">=</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#800080;">QString</span><span style=" color:#000000;">(</span><span
+style=" color:#008000;">"color:</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#008000;">%1;</span><span style=" color:#c0c0c0;"> </span><span style=" color:#008000;">background-color:</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#008000;">%2;"</span><span style=" color:#000000;">).</span><span
+style=" color:#000000;">arg</span><span style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">strFGColor</span><span style=" color:#c0c0c0;"> </span><span
+style=" color:#000000;">).</span><span style=" color:#000000;">arg</span><span style=" color:#000000;">(</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strBGColor</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#c0c0c0;">    </span><span style=" color:#800000;">ui</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#800000;">labelShow</span><span
+style=" color:#000000;">-&gt;</span><span style=" color:#000000;">setStyleSheet</span><span
+style=" color:#000000;">(</span><span style=" color:#c0c0c0;"> </span><span style=" color:#000000;">strCSS</span><span
+style=" color:#c0c0c0;"> </span><span style=" color:#000000;">);</span></pre>
+<pre style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span
+style=" color:#000000;">}</span></pre></div>
+    我们从前景色组合框获取前景色文本，从背景色组合框获取背景色文本，然后构造样式表字符串，color 就是前景色，background-color 就是背景色，分别填充各自的颜色文本，设置样式表给 ui-&gt;labelShow 标签。<br>示例代码讲解到这，我们生成项目，运行该示例：<br>
+    <center> <img src="images/ch10/ch10-02-25.png" alt="run1"></center>
+          我们可以看到右边工具箱容器的标题和页面内部颜色都变了，说明设置的样式表生效了。<br>我们修改前景色、背景色，可以看到左边标签的变化：<br>
+    <center> <img src="images/ch10/ch10-02-26.png" alt="run2"></center>
+          我们点击“字体字号”标题栏，展开该页面，可以修改字体和字号，如下图所示：<br>
+    <center> <img src="images/ch10/ch10-02-27.png" alt="run3"></center>
+          其他功能请读者自行测试，本节示例内容到这，我们下一节学习功能更强大的容器。<br><br>
+    <br>
+    <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+      <tbody>
+        <tr>
+          <td style="width: 40%;">
+            <div style="text-align: center;"><a href="ch10-01.htm"><img class="pic"
+style="width: 32px; height: 32px;" alt="prev" src="images/pics/prev.png"></a></div>
+          </td>
+          <td style="width: 20%;">
+            <div style="text-align: center;"><a href="contents.htm"><img class="pic"
+style="width: 32px; height: 32px;" alt="contents" src="images/pics/contents.png"></a></div>
+          </td>
+          <td style="width: 40%;">
+            <div style="text-align: center;"><a href="ch10-03.htm"><img class="pic"
+style="width: 32px; height: 32px;" alt="next" src="images/pics/next.png"></a></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+</body></html>
